@@ -1,11 +1,12 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { ChatCompletionRequest } from './dto/chat.dto';
 import {
+  ChatCompletionResponse,
+  handleRateLimitExceeded,
   sendAzureOpenAIGetChatCompletions,
   sendChatCompletionRequest,
-  handleRateLimitExceeded,
-  ChatCompletionResponse,
 } from './loadbalance/loadbalance.core';
+import { Injectable, Logger } from '@nestjs/common';
+
+import { ChatCompletionRequest } from './dto/chat.dto';
 
 @Injectable()
 export class AppService {
@@ -15,7 +16,7 @@ export class AppService {
   private readonly openaiKeyList =
     process.env.AZURE_OPENAI_KEYS?.split(',') || [];
   private readonly deploymentName =
-    process.env.AZURE_OPENAI_DEPLOYMENT_NAME || '';
+    process.env.AZURE_OPENAI_DEPLOYMENT_NAME || 'test';
   private readonly apiVersion =
     process.env.AZURE_OPENAI_API_VERSION || '2024-02-15-preview';
 
@@ -38,6 +39,8 @@ export class AppService {
       handleRateLimitExceeded,
     };
 
+    console.log(context, request);
+
     try {
       const response = (await sendAzureOpenAIGetChatCompletions.call(
         context,
@@ -46,6 +49,8 @@ export class AppService {
         this.apiVersion,
         request,
       )) as ChatCompletionResponse;
+
+      console.log(response);
 
       if (!response.choices?.[0]?.message?.content) {
         throw new Error('Invalid response format from Azure OpenAI');

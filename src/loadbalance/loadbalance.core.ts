@@ -1,11 +1,12 @@
-import axios, { AxiosResponse } from 'axios';
-import { HttpException } from '@nestjs/common';
-import { HttpStatus } from '@nestjs/common';
-import { ERROR_CODE } from 'src/loadbalance/utils/server';
 import {
   ChatMessage,
   serializeChatRequestMessage,
 } from 'src/loadbalance/utils/serialize';
+import axios, { AxiosResponse } from 'axios';
+
+import { ERROR_CODE } from 'src/loadbalance/utils/server';
+import { HttpException } from '@nestjs/common';
+import { HttpStatus } from '@nestjs/common';
 import { Logger } from '@nestjs/common';
 
 interface ChatCompletionRequest {
@@ -177,10 +178,7 @@ export async function handleRateLimitExceeded(
   this: LoadBalancerContext,
   error: ErrorResponse,
 ): Promise<void> {
-  if (
-    error.response?.status === ERROR_CODE.NET_E_TOO_MANY_REQUESTS ||
-    error.response?.status === HttpStatus.SERVICE_UNAVAILABLE
-  ) {
+  if (error.response?.status === 429 || error.response?.status === 503) {
     this.logger.debug(
       'Rate Limit Exceeded or Service Unavailable, waiting for 1 second...',
     );
